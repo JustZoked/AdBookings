@@ -20,6 +20,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV SKIP_ENV_VALIDATION=1
+ENV DATABASE_URL=postgresql://build:build@localhost/build
+ENV BOOKING_ACTION_SECRET=build-time-placeholder-secret-32-chars-minimum
 RUN pnpm prisma generate && pnpm build
 
 

@@ -48,6 +48,22 @@ const envSchema = z.object({
 })
 
 function parseEnv() {
+  // Skip during Docker build stage — Next.js sets NEXT_PHASE during `next build`,
+  // and we also support SKIP_ENV_VALIDATION for explicit opt-out
+  const isBuildPhase =
+    process.env.NEXT_PHASE === 'phase-production-build' ||
+    process.env.SKIP_ENV_VALIDATION === '1'
+
+  if (isBuildPhase) {
+    return envSchema.parse({
+      DATABASE_URL: process.env.DATABASE_URL ?? 'postgresql://build:build@localhost/build',
+      BOOKING_ACTION_SECRET:
+        process.env.BOOKING_ACTION_SECRET ??
+        'build-time-placeholder-secret-32-chars-minimum',
+      ...process.env,
+    })
+  }
+
   const result = envSchema.safeParse(process.env)
   if (!result.success) {
     console.error('Invalid environment variables:')
