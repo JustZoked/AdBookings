@@ -26,6 +26,14 @@ RUN mkdir -p /app/public
 RUN pnpm prisma generate && pnpm build
 
 
+# Stage 2.5: Dereference pnpm symlinks for Prisma so COPY in runner works
+FROM node:20-alpine AS prisma-prep
+WORKDIR /app
+COPY --from=builder /app/node_modules /app/node_modules
+RUN cp -rL node_modules/@prisma /tmp/prisma-client && \
+    cp -rL node_modules/prisma /tmp/prisma-cli
+
+
 # Stage 3: Production runner
 FROM node:20-alpine AS runner
 RUN apk add --no-cache libc6-compat openssl
@@ -44,9 +52,8 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
 # Copy Prisma client and schema (needed for migrations)
-COPY --from=builder /app/node_modules/.pnpm /app/node_modules/.pnpm
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=prisma-prep /tmp/prisma-client ./node_modules/@prisma
+COPY --from=prisma-prep /tmp/prisma-cli ./node_modules/prisma
 COPY --from=builder /app/prisma ./prisma
 
 # Uploads directory (bound as volume)
