@@ -22,6 +22,7 @@ COPY . .
 ENV SKIP_ENV_VALIDATION=1
 ENV DATABASE_URL=postgresql://build:build@localhost/build
 ENV BOOKING_ACTION_SECRET=build-time-placeholder-secret-32-chars-minimum
+RUN mkdir -p /app/public
 RUN pnpm prisma generate && pnpm build
 
 
