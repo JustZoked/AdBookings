@@ -3,8 +3,10 @@ FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
+RUN npm install -g pnpm
+
 COPY package.json pnpm-lock.yaml* ./
-RUN corepack enable pnpm && pnpm install --frozen-lockfile --ignore-scripts
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 
 # Stage 2: Build
@@ -12,12 +14,12 @@ FROM node:20-alpine AS builder
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
+RUN npm install -g pnpm
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN corepack enable pnpm && \
-    pnpm prisma generate && \
-    pnpm build
+RUN pnpm prisma generate && pnpm build
 
 
 # Stage 3: Production runner
