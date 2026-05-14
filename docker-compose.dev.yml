@@ -23,7 +23,7 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "5433:5432"   # 5432 ocupado por PolarDoc en el host
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-adsemble}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adsemble}
