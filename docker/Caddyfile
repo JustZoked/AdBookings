@@ -1,7 +1,7 @@
 {$DOMAIN} {
     encode gzip zstd
 
-    reverse_proxy app:3000
+    reverse_proxy app:5000
 
     log {
         output file /var/log/caddy/access.log {

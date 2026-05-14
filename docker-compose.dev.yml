@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "5000:5000"
     depends_on:
       db:
         condition: service_healthy
