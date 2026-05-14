@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+
+# Production build
+dist/
+
+# Env files
+.env
+.env.local
+.env.production
+.env.development.local
+
+# Uploads (runtime data)
+uploads/
+
+# Backups
+backups/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Prisma
+prisma/migrations/**/migration_lock.toml
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Test artifacts
+test-results/
+playwright-report/
+playwright/.cache/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# pnpm
+.pnpm-store/

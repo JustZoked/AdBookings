@@ -1,0 +1,17 @@
+node_modules/
+.next/
+.git/
+.gitignore
+.env
+.env.local
+uploads/
+backups/
+README.md
+DEPLOY.md
+*.log
+test-results/
+playwright-report/
+.vscode/
+.DS_Store
+docker-compose.dev.yml
+tests/e2e/

@@ -1,0 +1,46 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-adsemble}:${POSTGRES_PASSWORD:-adsemble}@db:5432/${POSTGRES_DB:-adsemble}
+      NODE_ENV: development
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - internal
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-adsemble}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adsemble}
+      POSTGRES_DB: ${POSTGRES_DB:-adsemble}
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-adsemble}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata_dev:
+
+networks:
+  internal:
+    driver: bridge
