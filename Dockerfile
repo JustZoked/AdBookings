@@ -25,13 +25,9 @@ ENV BOOKING_ACTION_SECRET=build-time-placeholder-secret-32-chars-minimum
 RUN mkdir -p /app/public
 RUN pnpm prisma generate && pnpm build
 
-
-# Stage 2.5: Dereference pnpm symlinks for Prisma so COPY in runner works
-FROM node:20-alpine AS prisma-prep
-WORKDIR /app
-COPY --from=builder /app/node_modules /app/node_modules
-RUN cp -rL node_modules/@prisma /tmp/prisma-client && \
-    cp -rL node_modules/prisma /tmp/prisma-cli
+# Dereference pnpm symlinks for Prisma CLI tools into an isolated dir
+RUN cp -rL node_modules/@prisma /tmp/prisma-scope && \
+    cp -rL node_modules/prisma /tmp/prisma-pkg
 
 
 # Stage 3: Production runner
@@ -51,9 +47,9 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-# Copy Prisma client and schema (needed for migrations)
-COPY --from=prisma-prep /tmp/prisma-client ./node_modules/@prisma
-COPY --from=prisma-prep /tmp/prisma-cli ./node_modules/prisma
+# Prisma CLI in isolated dir so it doesn't conflict with standalone node_modules
+COPY --from=builder /tmp/prisma-scope /prisma-cli/node_modules/@prisma
+COPY --from=builder /tmp/prisma-pkg /prisma-cli/node_modules/prisma
 COPY --from=builder /app/prisma ./prisma
 
 # Uploads directory (bound as volume)
@@ -67,4 +63,4 @@ ENV PORT=5000
 ENV HOSTNAME="0.0.0.0"
 
 # Run migrations then start the app
-CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && node server.js"]
+CMD ["sh", "-c", "node /prisma-cli/node_modules/prisma/build/index.js migrate deploy && node server.js"]
