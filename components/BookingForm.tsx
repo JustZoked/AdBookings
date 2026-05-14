@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -87,6 +87,7 @@ export function BookingForm({ room }: { room: Room }) {
     register,
     handleSubmit,
     watch,
+    getValues,
     setValue,
     formState: { errors },
   } = useForm<FormValues>({
@@ -97,10 +98,7 @@ export function BookingForm({ room }: { room: Room }) {
   const watchDate = watch('date')
   const watchStart = watch('startTime')
   const watchEnd = watch('endTime')
-  const watchAmenitiesRaw = watch('amenityIds')
-  const watchAmenities = watchAmenitiesRaw ?? []
-  // Stable string for useCallback dep — avoids infinite debounce reset from new array refs
-  const watchAmenitiesStr = JSON.stringify(watchAmenities)
+  const watchAmenities = watch('amenityIds') ?? []
 
   // Fetch blocked slots when date changes
   useEffect(() => {
@@ -111,43 +109,42 @@ export function BookingForm({ room }: { room: Room }) {
       .catch(() => setBlockedSlots([]))
   }, [watchDate, room.id])
 
-  // Fetch price breakdown
-  const fetchBreakdown = useCallback(async () => {
-    if (!watchDate || !watchStart || !watchEnd) {
-      setBreakdown(null)
-      return
-    }
-    const startAt = toUtcDatetime(watchDate, watchStart)
-    const endAt = toUtcDatetime(watchDate, watchEnd)
-    if (new Date(endAt) <= new Date(startAt)) {
-      setBreakdown(null)
-      return
-    }
-    setBreakdownLoading(true)
-    try {
-      const res = await fetch('/api/pricing/quote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roomId: room.id, startAt, endAt, amenityIds: watchAmenitiesRaw ?? [] }),
-      })
-      if (res.ok) {
-        setBreakdown(await res.json())
-      } else {
-        setBreakdown(null)
-      }
-    } catch {
-      setBreakdown(null)
-    } finally {
-      setBreakdownLoading(false)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchDate, watchStart, watchEnd, watchAmenitiesStr, room.id])
-
-  // Debounced price update
+  // Debounced price update — reads current values via getValues() to avoid stale closures
   useEffect(() => {
-    const t = setTimeout(fetchBreakdown, 300)
+    const t = setTimeout(async () => {
+      const { date, startTime, endTime, amenityIds } = getValues()
+      if (!date || !startTime || !endTime) {
+        setBreakdown(null)
+        return
+      }
+      const startAt = toUtcDatetime(date, startTime)
+      const endAt = toUtcDatetime(date, endTime)
+      if (new Date(endAt) <= new Date(startAt)) {
+        setBreakdown(null)
+        return
+      }
+      setBreakdownLoading(true)
+      try {
+        const res = await fetch('/api/pricing/quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomId: room.id, startAt, endAt, amenityIds: amenityIds ?? [] }),
+        })
+        if (res.ok) {
+          setBreakdown(await res.json())
+        } else {
+          setBreakdown(null)
+        }
+      } catch {
+        setBreakdown(null)
+      } finally {
+        setBreakdownLoading(false)
+      }
+    }, 300)
     return () => clearTimeout(t)
-  }, [fetchBreakdown])
+  // watchAmenities triggers re-run when amenities change; primitives are stable
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchDate, watchStart, watchEnd, JSON.stringify(watchAmenities), room.id])
 
   const onSubmit = async (values: FormValues) => {
     setSubmitting(true)

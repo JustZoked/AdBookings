@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { db } from '@/lib/db'
 import { RoomCard } from '@/components/RoomCard'
 
@@ -17,7 +18,9 @@ export default async function HomePage() {
     <div className="container mx-auto max-w-6xl px-4 py-12">
       {/* Hero */}
       <div className="mb-12 text-center">
-        <div className="mb-4 text-6xl">🏢</div>
+        <div className="mb-4 flex justify-center">
+          <Image src="/logo.png" alt="Adsemble" width={120} height={120} className="object-contain" />
+        </div>
         <h1 className="mb-3 text-4xl font-bold text-gray-900">Adsemble Bookings</h1>
         <p className="mx-auto max-w-xl text-lg text-gray-600">
           Reserva nuestros salones de forma rápida y sencilla. Confirmaremos tu solicitud por correo electrónico.
