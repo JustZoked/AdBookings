@@ -99,6 +99,8 @@ export function BookingForm({ room }: { room: Room }) {
   const watchEnd = watch('endTime')
   const watchAmenitiesRaw = watch('amenityIds')
   const watchAmenities = watchAmenitiesRaw ?? []
+  // Stable string for useCallback dep — avoids infinite debounce reset from new array refs
+  const watchAmenitiesStr = JSON.stringify(watchAmenities)
 
   // Fetch blocked slots when date changes
   useEffect(() => {
@@ -138,7 +140,8 @@ export function BookingForm({ room }: { room: Room }) {
     } finally {
       setBreakdownLoading(false)
     }
-  }, [watchDate, watchStart, watchEnd, watchAmenitiesRaw, room.id])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchDate, watchStart, watchEnd, watchAmenitiesStr, room.id])
 
   // Debounced price update
   useEffect(() => {
