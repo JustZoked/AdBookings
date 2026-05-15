@@ -56,6 +56,10 @@ export class GraphCalendarService implements CalendarService {
           type: 'required',
         },
       ],
+      location: {
+        displayName: opts.roomName,
+        locationType: 'conferenceRoom',
+      },
       isOnlineMeeting: false,
       allowNewTimeProposals: false,
       responseRequested: false,
