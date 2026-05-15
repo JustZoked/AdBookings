@@ -15,6 +15,9 @@ const envSchema = z.object({
   BOOKING_ACTION_SECRET: z.string().min(32, 'Generate with: openssl rand -base64 48'),
   ACTION_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(7),
 
+  // Cron
+  CRON_SECRET: z.string().min(16, 'Generate with: openssl rand -base64 32'),
+
   // Email
   MAIL_DRIVER: z.enum(['graph', 'smtp']).default('graph'),
 
@@ -60,6 +63,8 @@ function parseEnv() {
       BOOKING_ACTION_SECRET:
         process.env.BOOKING_ACTION_SECRET ??
         'build-time-placeholder-secret-32-chars-minimum',
+      CRON_SECRET:
+        process.env.CRON_SECRET ?? 'build-time-placeholder-cron-secret-32ch',
       ...process.env,
     })
   }
